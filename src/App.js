@@ -1,5 +1,7 @@
 import './App.css';
 import Header from './Header';
+import Footer from './Footer';
+import { Statistique1, Statistique2, Statistique3 } from './Statistique';
 
 function App() {
   return (
@@ -8,7 +10,11 @@ function App() {
       <main className="contenu">
         <p>Bienvenue ! Cette application vous aide a trouver
         votre ligne de bus a Dakar.</p>
+        <Statistique1 />
+        <Statistique2 />
+        <Statistique3 />
       </main>
+      <Footer />
     </div>
   );
 }
