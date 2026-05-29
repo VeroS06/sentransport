@@ -1,16 +1,52 @@
 import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './Carte.css';
 
-// Corriger les icônes Leaflet (bug webpack)
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
 });
+
+const iconeNormale = new L.Icon({
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
+
+const iconeProche = new L.Icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-yellow.png',
+  iconRetinaUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-yellow.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
+
+function BoutonCentrer({ position }) {
+  const map = useMap();
+  if (!position) return null;
+  return (
+    <button
+      className="bouton-centrer"
+      onClick={() => map.setView(position, 13)}
+    >
+      📍 Ma position
+    </button>
+  );
+}
 
 function calculerDistance(lat1, lon1, lat2, lon2) {
   const R = 6371;
@@ -28,7 +64,7 @@ function calculerDistance(lat1, lon1, lat2, lon2) {
 function Carte() {
   const [arrets, setArrets] = useState([]);
   const [positionUtilisateur, setPositionUtilisateur] = useState(null);
-  const [arretProche, setArretProche] = useState(null);
+  const [arretsProches, setArretsProches] = useState([]);
   const DAKAR = [14.6928, -17.4467];
 
   useEffect(() => {
@@ -54,34 +90,44 @@ function Carte() {
 
   useEffect(() => {
     if (positionUtilisateur && arrets.length > 0) {
-      let proche = null;
-      let dMin = Infinity;
-      arrets.forEach(a => {
-        const d = calculerDistance(
+      const arretsAvecDistance = arrets.map(a => ({
+        ...a,
+        distance: calculerDistance(
           positionUtilisateur[0],
-          positionUtilisateur[1], a.lat, a.lon);
-        if (d < dMin) { dMin = d; proche = { ...a, distance: d }; }
-      });
-      setArretProche(proche);
+          positionUtilisateur[1], a.lat, a.lon)
+      }));
+      const top3 = arretsAvecDistance
+        .sort((a, b) => a.distance - b.distance)
+        .slice(0, 3);
+      setArretsProches(top3);
     }
   }, [positionUtilisateur, arrets]);
 
   return (
     <div className="carte-container">
       <h2 className="carte-titre">Carte des arrêts</h2>
-      {arretProche && (
-        <p className="arret-proche">
-          Arrêt le plus proche : <strong>{arretProche.nom}</strong>
-          {" "}({arretProche.distance.toFixed(1)} km)
-        </p>
+      {arretsProches.length > 0 && (
+        <div className="arrets-proches">
+          <p><strong>Les 3 arrêts les plus proches :</strong></p>
+          {arretsProches.map((a, i) => (
+            <p key={a.id} className="arret-proche">
+              {i + 1}. {a.nom} ({a.distance.toFixed(1)} km)
+            </p>
+          ))}
+        </div>
       )}
       <MapContainer center={DAKAR} zoom={13} className="carte">
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution="&copy; OpenStreetMap"
         />
+        <BoutonCentrer position={positionUtilisateur} />
         {arrets.map(a => (
-          <Marker key={a.id} position={[a.lat, a.lon]}>
+          <Marker
+            key={a.id}
+            position={[a.lat, a.lon]}
+            icon={arretsProches.length > 0 && arretsProches[0].id === a.id ? iconeProche : iconeNormale}
+          >
             <Popup>
               <strong>{a.nom}</strong><br />
               Lignes : {a.lignes.join(", ")}
@@ -89,7 +135,7 @@ function Carte() {
           </Marker>
         ))}
         {positionUtilisateur && (
-          <Marker position={positionUtilisateur}>
+          <Marker position={positionUtilisateur} icon={iconeNormale}>
             <Popup>Vous êtes ici</Popup>
           </Marker>
         )}
