@@ -48,5 +48,22 @@
     "arrets": 11,
     "listeArrets": ["Yoff Village", "Aeroport LSS",
       "Parcelles U17", "Grand Yoff", "HLM", "Sandaga"]
+  },
+  {
+    "id": 7, "numero": "27",
+    "depart": "Rufisque",
+    "arrivee": "Plateau",
+    "arrets": 15,
+    "listeArrets": ["Rufisque Gare", "Sangalkam",
+      "Keur Massar", "Pikine", "Thiaroye",
+      "Hann", "Colobane", "Plateau"]
+  },
+  {
+    "id": 8, "numero": "42",
+    "depart": "Diamniadio",
+    "arrivee": "Sandaga",
+    "arrets": 13,
+    "listeArrets": ["Diamniadio", "Mbao", "Yeumbeul",
+      "Pikine", "Grand Dakar", "Colobane", "Sandaga"]
   }
 ]

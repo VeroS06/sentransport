@@ -5,15 +5,17 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
-# Charger les données depuis le fichier JSON
 with open("lignes_ddd.json", "r") as f:
     lignes = json.load(f)
+
+with open("arrets.json", "r") as f:
+    arrets = json.load(f)
 
 @app.route("/")
 def accueil():
     return jsonify({
         "message": "Bienvenue sur l'API SenTransport !",
-        "endpoints": ["/lignes", "/lignes/<id>"]
+        "endpoints": ["/lignes", "/lignes/<id>", "/arrets"]
     })
 
 @app.route("/lignes")
@@ -32,11 +34,6 @@ def get_ligne(ligne_id):
 
 @app.route("/arrets")
 def get_arrets():
-    arrets = []
-    for ligne in lignes:
-        for arret in ligne["listeArrets"]:
-            if arret not in arrets:
-                arrets.append(arret)
     return jsonify(arrets)
 
 @app.route("/stats")
@@ -54,8 +51,6 @@ def get_stats():
         }
     })
 
-from flask import Flask, jsonify, request
-
 @app.route("/lignes/recherche")
 def recherche_lignes():
     q = request.args.get("q", "")
@@ -65,5 +60,6 @@ def recherche_lignes():
         or q.lower() in l["arrivee"].lower()
     ]
     return jsonify(resultats)
+
 if __name__ == "__main__":
     app.run(debug=True, port=5000)

@@ -5,6 +5,7 @@ import Recherche from './Recherche';
 import LigneBus from './LigneBus';
 import DetailLigne from './DetailLigne';
 import Footer from './Footer';
+import Carte from './Carte';
 
 function App() {
   const [lignes, setLignes] = useState([]);
@@ -13,7 +14,9 @@ function App() {
   const [recherche, setRecherche] = useState("");
   const [ligneSelectionnee, setLigneSelectionnee] = useState(null);
 
-  useEffect(() => {
+  function chargerLignes() {
+    setChargement(true);
+    setErreur(null);
     fetch("http://localhost:5000/lignes")
       .then(response => {
         if (!response.ok) {
@@ -29,6 +32,10 @@ function App() {
         setErreur(error.message);
         setChargement(false);
       });
+  }
+
+  useEffect(() => {
+    chargerLignes();
   }, []);
 
   const lignesFiltrees = lignes.filter(l =>
@@ -79,6 +86,9 @@ function App() {
           valeur={recherche}
           onChange={setRecherche}
         />
+        <button className="btn-recharger" onClick={chargerLignes}>
+          🔄 Recharger
+        </button>
         {lignesFiltrees.length === 0 && (
           <p className="aucune-ligne">Aucune ligne trouvée</p>
         )}
@@ -97,6 +107,7 @@ function App() {
           />
         ))}
         {ligneSelectionnee && <DetailLigne ligne={ligneSelectionnee} />}
+      <Carte />
       </main>
       <Footer />
     </div>
